@@ -4,41 +4,75 @@ import MainDiv from "./components/MainDiv";
 import ContentBorder from "./components/ContentBorder";
 import Header from "./components/Header";
 import PlayerPanel from "./components/PlayerPanel";
+import Message from "./components/Message";
 import Frame from './components/Frame';
+
+import {confirmAlert} from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 
 class App extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            playerOneName: 'Player 1',
-            playerTwoName: 'Player 2',
-            playerOneTurn: true,
-            currentSign: 'X',
-            gameImage: {
-                one: ['1,1', '1,2', '1,3'],
-                two: ['2,1', '2,2', '2,3'],
-                three: ['3,1', '3,2', '3,3'],
-            },
-            message: 'Start game!'
-        };
+        this.state = this.getInitialState();;
 
         this.onClick = this.onClick.bind(this);
         this.onChange = this.onChange.bind(this);
     }
 
+    getInitialState = () => {
+        return {
+            playerOneName: 'Player 1',
+            playerTwoName: 'Player 2',
+            playerOneTurn: true,
+            currentSign: 'X',
+            message: 'Start game with player 1!',
+            gameImage: {
+                one: ['', '', ''],
+                two: ['', '', ''],
+                three: ['', '', ''],
+            }
+        };
+    };
+
     onClick = (row, column) => (e) => {
         console.log('Event', e);
         console.log('Position', row, column);
 
-        const playerOneTurn = this.state.playerOneTurn;
-        const currentSign = this.state.currentSign;
-        this.state.gameImage[row][column] = currentSign;
+        const { playerOneName, playerTwoName, playerOneTurn, currentSign, message, gameImage } =this.state;
 
-        this.setState({
-            playerOneTurn: !playerOneTurn,
-            currentSign: currentSign === 'X' ? 'O' : 'X',
-        });
+        //Game draw logic start here
+        let itemCount = 0;
+        for (let row in gameImage) {
+            console.log('row', row);
+
+            for (let column = 0; column < 3; column++) {
+                if (gameImage[row][column] !== ''){
+                    itemCount++
+                }
+            }
+        }
+        console.log('itemCount', itemCount);
+        if (itemCount === 7) {
+            console.log('Drawn');
+            this.setState({
+                message: 'Match Drawn! Please refresh the'
+            });
+        } else {
+            const tempPlayerOneTurn = playerOneTurn;
+            const tempCurrentSign = currentSign;
+
+            const tempGameImage = {...gameImage};
+            tempGameImage[row][column] = tempCurrentSign;
+
+            this.setState({
+                playerOneTurn: !tempPlayerOneTurn,
+                currentSign: tempCurrentSign === 'X' ? 'O' : 'X',
+                message: tempPlayerOneTurn ? `Turn for ${playerTwoName}` : `Turn for ${playerOneName}`,
+                gameImage: tempGameImage
+            });
+        }
+        //Game draw logic end here
     };
 
     onChange = (event) => {
@@ -46,11 +80,37 @@ class App extends Component {
         this.setState({
             [event.target.name]: event.target.value
         });
-
-        console.log('State', JSON.stringify(this.state));
     };
 
+    showWinningMessage = () => {
+
+        const { playerOneTurn, playerOneName, playerTwoName } = this.state;
+
+        confirmAlert({
+            title: 'Congratulations!',
+            message: playerOneTurn ? `${playerTwoName} has won!! Want to replay?` : `${playerOneName} has won!! Want to replay?`,
+            buttons: [
+                {
+                    label: 'Yes',
+                    onClick: () => {
+                        this.reset();
+                    }
+                },
+                {
+                    label: 'No',
+                }
+            ]
+        });
+    };
+
+    reset() {
+        this.setState(this.getInitialState());
+    }
+
     render() {
+
+        const {playerOneName, playerTwoName, playerOneTurn, message, gameImage} = this.state;
+
         return (
             <div className="App">
                 <MainDiv>
@@ -59,20 +119,20 @@ class App extends Component {
                         <PlayerPanel
                             values={
                                 {
-                                    playerOneName: this.state.playerOneName,
-                                    playerTwoName: this.state.playerTwoName
+                                    playerOneName,
+                                    playerTwoName
                                 }
                             }
                             turns={
                                 {
-                                    playerOneTurn: this.state.playerOneTurn,
-                                    playerTwoTurn: !this.state.playerOneTurn
+                                    playerOneTurn: playerOneTurn,
+                                    playerTwoTurn: !playerOneTurn
                                 }
                             }
                             onChange={this.onChange}
                         />
-                        <div>{this.state.message}</div>
-                        <Frame gameImage={this.state.gameImage} onClick={this.onClick}/>
+                        <Message message={message}/>
+                        <Frame gameImage={gameImage} onClick={this.onClick}/>
                     </ContentBorder>
                 </MainDiv>
             </div>
@@ -81,18 +141,62 @@ class App extends Component {
 
     componentDidUpdate() {
         console.log('componentDidUpdate');
-        for (let key in this.state.gameImage){
-            let temp = null;
-            for (let i = 0; i < key.length; i++){
-                console.log('key', key);
-                console.log('i', i);
-                console.log(this.state.gameImage[key][i]);
+
+        const { gameImage } = this.state;
+
+        //Game winning logic start here --
+        //Row check
+        for (let row in gameImage) {
+            console.log('row', row);
+            let previousSign = null;
+            let matchCount = 0;
+            for (let column = 0; column < 3; column++) {
+                console.log('column', column);
+                console.log('gameImage[row][column]', gameImage[row][column]);
+                if (previousSign === gameImage[row][column] && gameImage[row][column] !== '') {
+                    matchCount++;
+                }
+                previousSign = gameImage[row][column];
+            }
+            if (matchCount === 2) {
+                console.log('Winner');
+                this.showWinningMessage();
             }
         }
 
-        if (this.state.gameImage['one'][0] === this.state.gameImage['one'][1] && this.state.gameImage['one'][1] === this.state.gameImage['one'][2]){
-            alert('winner');
+        //Column check
+        for (let column = 0; column < 3; column++) {
+            console.log('column', column);
+            let previousSign = null;
+            let matchCount = 0;
+            for (let row in gameImage) {
+                console.log('row', row);
+                console.log('gameImage[row][column]', gameImage[row][column]);
+                if (previousSign === gameImage[row][column] && gameImage[row][column] !== '') {
+                    matchCount++;
+                }
+                previousSign = gameImage[row][column];
+            }
+            if (matchCount === 2) {
+                console.log('Win');
+                this.showWinningMessage();
+            }
         }
+
+        //Diagonal check
+        console.log('gameImage[\'one\'][0]', gameImage['one'][0]);
+        console.log('gameImage[\'two\'][1]', gameImage['two'][1]);
+        console.log('gameImage[\'three\'][2]', gameImage['three'][2]);
+        if (gameImage['one'][0] === gameImage['two'][1] && gameImage['two'][1] === gameImage['three'][2] && gameImage['three'][2] !== '') {
+            this.showWinningMessage();
+        }
+        console.log('gameImage[\'one\'][2]', gameImage['one'][2]);
+        console.log('gameImage[\'two\'][1]', gameImage['two'][1]);
+        console.log('gameImage[\'three\'][0]', gameImage['three'][0]);
+        if (gameImage['one'][2] === gameImage['two'][1] && gameImage['two'][1] === gameImage['three'][0] && gameImage['three'][0] !== '') {
+            this.showWinningMessage();
+        }
+        //Game winning logic end here
     }
 
     componentDidMount() {
