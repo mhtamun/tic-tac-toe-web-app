@@ -1,6 +1,12 @@
 import React, {Component} from 'react';
+
 import ApolloClient from 'apollo-boost';
 import {ApolloProvider} from "react-apollo";
+
+import {gql} from 'apollo-boost';
+import {graphql} from "react-apollo";
+
+//import addGameQuery from './queries/add';
 
 import MainDiv from "./components/MainDiv";
 import ContentBorder from "./components/ContentBorder";
@@ -16,6 +22,7 @@ import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 const client = new ApolloClient({
     uri: 'http://localhost:4567/graphql'
 });
+
 
 class App extends Component {
     constructor(props) {
@@ -90,7 +97,9 @@ class App extends Component {
 
     showWinningMessage = () => {
 
-        const {playerOneTurn, playerOneName, playerTwoName} = this.state;
+        const {playerOneTurn, playerOneName, playerOneSign, playerTwoName, playerTwoSign } = this.state;
+
+        //addGameQuery();
 
         confirmAlert({
             title: 'Congratulations!',
