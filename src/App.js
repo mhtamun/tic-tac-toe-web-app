@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import ApolloClient from 'apollo-boost';
+import {ApolloProvider} from "react-apollo";
 
 import MainDiv from "./components/MainDiv";
 import ContentBorder from "./components/ContentBorder";
@@ -6,16 +8,20 @@ import Header from "./components/Header";
 import PlayerPanel from "./components/PlayerPanel";
 import Message from "./components/Message";
 import Frame from './components/Frame';
+import GameScores from './components/GameScores';
 
 import {confirmAlert} from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
+
+const client = new ApolloClient({
+    uri: 'http://localhost:4567/graphql'
+});
 
 class App extends Component {
     constructor(props) {
         super(props);
 
-        this.state = this.getInitialState();;
-
+        this.state = this.getInitialState();
         this.onClick = this.onClick.bind(this);
         this.onChange = this.onChange.bind(this);
     }
@@ -39,7 +45,7 @@ class App extends Component {
         console.log('Event', e);
         console.log('Position', row, column);
 
-        const { playerOneName, playerTwoName, playerOneTurn, currentSign, message, gameImage } =this.state;
+        const {playerOneName, playerTwoName, playerOneTurn, currentSign, message, gameImage} = this.state;
 
         //Game draw logic start here
         let itemCount = 0;
@@ -47,7 +53,7 @@ class App extends Component {
             console.log('row', row);
 
             for (let column = 0; column < 3; column++) {
-                if (gameImage[row][column] !== ''){
+                if (gameImage[row][column] !== '') {
                     itemCount++
                 }
             }
@@ -84,7 +90,7 @@ class App extends Component {
 
     showWinningMessage = () => {
 
-        const { playerOneTurn, playerOneName, playerTwoName } = this.state;
+        const {playerOneTurn, playerOneName, playerTwoName} = this.state;
 
         confirmAlert({
             title: 'Congratulations!',
@@ -134,6 +140,9 @@ class App extends Component {
                         <Message message={message}/>
                         <Frame gameImage={gameImage} onClick={this.onClick}/>
                     </ContentBorder>
+                    <ApolloProvider client={client}>
+                        <GameScores />
+                    </ApolloProvider>
                 </MainDiv>
             </div>
         );
@@ -142,7 +151,7 @@ class App extends Component {
     componentDidUpdate() {
         console.log('componentDidUpdate');
 
-        const { gameImage } = this.state;
+        const {gameImage} = this.state;
 
         //Game winning logic start here --
         //Row check
