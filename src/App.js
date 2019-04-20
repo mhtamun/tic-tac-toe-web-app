@@ -1,12 +1,9 @@
 import React, {Component} from 'react';
 
-import ApolloClient from 'apollo-boost';
-import {ApolloProvider} from "react-apollo";
+import ApolloClient, {gql} from 'apollo-boost';
+import {ApolloProvider, graphql, compose} from "react-apollo";
 
-import {gql} from 'apollo-boost';
-import {graphql} from "react-apollo";
-
-//import addGameQuery from './queries/add';
+import apolloWrapper from './apolloWrapper';
 
 import MainDiv from "./components/MainDiv";
 import ContentBorder from "./components/ContentBorder";
@@ -23,6 +20,25 @@ const client = new ApolloClient({
     uri: 'http://localhost:4567/graphql'
 });
 
+const addGameMutation = gql`
+mutation AddGame(
+    $winner: Int!, 
+    $player_one_name: String!, 
+    $player_one_sign: String!, 
+    $player_two_name: String!, 
+    $player_two_sign: String!)
+    {
+        addGame(
+        winner: $winner, 
+        player_one_name: $player_one_name, 
+        player_one_sign: $player_one_sign, 
+        player_two_name: $player_two_name, 
+        player_two_sign: $player_two_sign
+        ) {
+            winner, player_one_name, player_one_sign, player_two_name, player_two_sign
+    }
+  }
+`
 
 class App extends Component {
     constructor(props) {
@@ -99,7 +115,16 @@ class App extends Component {
 
         const {playerOneTurn, playerOneName, playerOneSign, playerTwoName, playerTwoSign } = this.state;
 
-        //addGameQuery();
+        console.log('props', this.props)
+        this.props.addGameMutation({
+            variables: {
+                winner: playerOneTurn ? 2 : 1, 
+                player_one_name: playerOneName, 
+                player_one_sign: "X", 
+                player_two_name: playerTwoName, 
+                player_two_sign: "O"
+            }
+        });
 
         confirmAlert({
             title: 'Congratulations!',
@@ -108,7 +133,7 @@ class App extends Component {
                 {
                     label: 'Yes',
                     onClick: () => {
-                        this.reset();
+                        window.location.reload();
                     }
                 },
                 {
@@ -127,7 +152,9 @@ class App extends Component {
         const {playerOneName, playerTwoName, playerOneTurn, message, gameImage} = this.state;
 
         return (
+            
             <div className="App">
+            <ApolloProvider client={client}>
                 <MainDiv>
                     <ContentBorder>
                         <Header/>
@@ -149,11 +176,13 @@ class App extends Component {
                         <Message message={message}/>
                         <Frame gameImage={gameImage} onClick={this.onClick}/>
                     </ContentBorder>
-                    <ApolloProvider client={client}>
+                    
                         <GameScores />
-                    </ApolloProvider>
+                    
                 </MainDiv>
+            </ApolloProvider>
             </div>
+            
         );
     }
 
@@ -222,4 +251,7 @@ class App extends Component {
     };
 }
 
-export default App;
+export default compose(
+    apolloWrapper,
+    graphql(addGameMutation, { name: "addGameMutation" })
+)(App);

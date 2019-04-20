@@ -6,13 +6,9 @@ import {graphql} from "react-apollo";
 
 const getGamesQuery = gql`
     {
-      games{
-        winner
-        player_one_name
-        player_one_sign
-        player_two_name
-        player_two_sign
-      }
+    games{
+            id, winner, player_one_name, player_one_sign, player_two_name, player_two_sign
+        }
     }
 `;
 
@@ -88,12 +84,16 @@ const GameScores = (props) => {
 
     function displayGames() {
         const data = props.data;
+        console.log('data', data);
+        if(data === undefined){
+            alert('Please start the server and try again.');
+        }
         if (data.loading) {
             return (<Header>Loading...</Header>)
         } else {
             return data.games.map(game => {
                 return (<Box key={game.id}>
-                    <Text>{`Winner: ${game.winner}`}</Text>
+                    <Text>{`Winner: ${game.winner === 1 ? game.player_one_name : game.player_two_name}`}</Text>
                     <Text>{`Player 1 name: ${game.player_one_name}`}</Text>
                     <Text>{`Player 1 sign: ${game.player_one_sign}`}</Text>
                     <Text>{`Player 2 name: ${game.player_two_name}`}</Text>
