@@ -1,16 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 
-import {gql} from 'apollo-boost';
 import {graphql} from "react-apollo";
-
-const getGamesQuery = gql`
-    {
-    games{
-            id, winner, player_one_name, player_one_sign, player_two_name, player_two_sign
-        }
-    }
-`;
+import {getGamesQuery} from '../queries/root'
 
 const Border = styled.div`
 margin 30px;
