@@ -3,7 +3,7 @@ import ApolloClient from 'apollo-boost'
 import {ApolloProvider} from "react-apollo";
 
 const client = new ApolloClient({
-    uri: 'http://10.0.0.227:4567/graphql'
+    uri: 'http://localhost:4567/graphql'
 });
 
 // Preconfigured HOC
