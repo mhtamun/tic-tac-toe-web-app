@@ -8,7 +8,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 const Game = React.lazy(() => import('./pages/Game'));
 
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store, persistor } from './store';
+import { PersistGate } from 'redux-persist/integration/react';
 
 class App extends Component {
   render() {
@@ -31,7 +32,9 @@ class App extends Component {
 
 ReactDOM.render(
   <Provider store={store}>
-    <App />
+    <PersistGate loading={null} persistor={persistor}>
+      <App />
+    </PersistGate>
   </Provider>,
   document.getElementById('root')
 );
